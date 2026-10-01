@@ -1,0 +1,8 @@
+{
+  "name": "Remix Freshit Quick Commerce Clone",
+  "description": "A high-fidelity, production-grade replica of a rapid grocery delivery platform featuring seamless animations and responsive UI components.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
