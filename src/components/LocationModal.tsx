@@ -214,7 +214,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                     Delivery Location &amp; Geolocation
                   </h3>
                   <span className="text-[11px] text-slate-500 font-semibold block">
-                    Strict 25-meter delivery boundary · Raghunathpur Dark Store
+                    25 km Delivery Radius · Raghunathpur Dark Store Hub
                   </span>
                 </div>
               </div>
@@ -264,10 +264,10 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                       <CheckCircle2 className="w-5 h-5 text-[#085E2B] shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold text-xs block text-[#085E2B] font-['Clash_Display',sans-serif]">
-                          ⚡ Lightning-fast delivery in 8 minutes available from our local dark store!
+                          ⚡ Instant grocery delivery available from our dark store hub!
                         </span>
                         <p className="text-[11px] text-emerald-800 font-medium mt-0.5">
-                          Calculated geodesic distance: <strong className="text-emerald-950">{distanceMeters}m</strong> (well within our 25-meter store perimeter).
+                          Calculated distance: <strong className="text-emerald-950">{distanceMeters >= 1000 ? `${(distanceMeters / 1000).toFixed(1)} km` : `${distanceMeters}m`}</strong> (comfortably within our 25 km delivery radius).
                         </p>
                       </div>
                     </div>
@@ -276,10 +276,10 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                       <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold text-xs block text-rose-700 font-['Clash_Display',sans-serif]">
-                          We deliver exclusively to PIN {storeLocation.pincode} and under 25 meters of our store address (Kuntighat - Magra Rd, Naya Sarai). Delivery unavailable at this location.
+                          We deliver within a 25 km radius of our store address (Kuntighat - Magra Rd, Naya Sarai). Delivery unavailable at this location.
                         </span>
                         <p className="text-[11px] text-rose-800 font-medium mt-0.5">
-                          Current location is <strong className="text-rose-950">{distanceMeters >= 1000 ? `${(distanceMeters / 1000).toFixed(1)} km` : `${distanceMeters} m`}</strong> away from our store address.
+                          Current location is <strong className="text-rose-950">{distanceMeters >= 1000 ? `${(distanceMeters / 1000).toFixed(1)} km` : `${distanceMeters} m`}</strong> away from our store hub.
                         </p>
                       </div>
                     </div>
@@ -332,37 +332,37 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-[11px] uppercase tracking-wider text-slate-500 font-['Clash_Display',sans-serif]">
-                        Test 25-Meter Geofence Distance
+                        Test 25 km Geofence Distance
                       </span>
-                      <span className="text-[10px] text-slate-400 font-medium">Haversine Validation</span>
+                      <span className="text-[10px] text-slate-400 font-medium">Haversine 25km Validation</span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-1.5">
                       <button
                         type="button"
-                        onClick={() => setSimulatedDistance(0, storeLocation.pincode, `Storefront Entrance (0m · PIN ${storeLocation.pincode})`)}
+                        onClick={() => setSimulatedDistance(1200, storeLocation.pincode, `Naya Sarai Hub (1.2 km)`)}
                         className="p-2 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 text-left cursor-pointer transition-colors"
                       >
-                        <span className="block text-xs font-bold text-emerald-900 font-['Clash_Display',sans-serif]">0m (Storefront)</span>
-                        <span className="text-[10px] text-[#085E2B] font-bold">✓ Serviceable</span>
+                        <span className="block text-xs font-bold text-emerald-900 font-['Clash_Display',sans-serif]">1.2 km (Hub)</span>
+                        <span className="text-[10px] text-[#085E2B] font-bold">✓ 8 mins</span>
                       </button>
 
                       <button
                         type="button"
-                        onClick={() => setSimulatedDistance(15, storeLocation.pincode, `Next Door Shop (15m · PIN ${storeLocation.pincode})`)}
+                        onClick={() => setSimulatedDistance(14000, '712123', `Bandel / Tribeni (14 km)`)}
                         className="p-2 rounded-xl border border-emerald-300 bg-white hover:bg-emerald-50 text-left cursor-pointer transition-colors"
                       >
-                        <span className="block text-xs font-bold text-emerald-900 font-['Clash_Display',sans-serif]">15m Away</span>
-                        <span className="text-[10px] text-[#085E2B] font-bold">✓ Under 25m</span>
+                        <span className="block text-xs font-bold text-emerald-900 font-['Clash_Display',sans-serif]">14 km Away</span>
+                        <span className="text-[10px] text-[#085E2B] font-bold">✓ Under 25km</span>
                       </button>
 
                       <button
                         type="button"
-                        onClick={() => setSimulatedDistance(120, '700001', 'Outside Zone (120m · PIN 700001)')}
+                        onClick={() => setSimulatedDistance(38000, '700001', 'Kolkata Central (38 km)')}
                         className="p-2 rounded-xl border border-rose-300 bg-white hover:bg-rose-50 text-left cursor-pointer transition-colors"
                       >
-                        <span className="block text-xs font-bold text-rose-900 font-['Clash_Display',sans-serif]">120m Away</span>
-                        <span className="text-[10px] text-rose-600 font-bold">✕ Outside 25m</span>
+                        <span className="block text-xs font-bold text-rose-900 font-['Clash_Display',sans-serif]">38 km Away</span>
+                        <span className="text-[10px] text-rose-600 font-bold">✕ Outside 25km</span>
                       </button>
                     </div>
                   </div>
@@ -540,7 +540,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                   {/* Geofence Overlay Pill */}
                   <div className="absolute top-2 left-2 bg-[#121212]/95 text-white backdrop-blur-xs px-2.5 py-1 rounded-lg text-[10px] font-bold border border-slate-700 shadow-md flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#085E2B] animate-ping" />
-                    <span>Store: PIN {storeLocation.pincode} · Under 25m Perimeter</span>
+                    <span>Store: PIN {storeLocation.pincode} · 25 km Delivery Radius</span>
                   </div>
                 </div>
               </div>
@@ -583,7 +583,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                                 {addr.label}
                               </span>
                               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
-                                8 mins (within 25m)
+                                8 mins · 25 km Zone
                               </span>
                             </div>
                             <p className="text-xs font-semibold text-slate-800 mt-0.5">

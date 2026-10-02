@@ -64,7 +64,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Product Media */}
         <div className="relative w-full aspect-square flex items-center justify-center p-2 rounded-xl bg-white/40 backdrop-blur-xs border border-white/60 overflow-hidden mb-3">
           <img
-            src={product.image}
+            src={product.image || product.imageUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=80'}
             alt={product.name}
             referrerPolicy="no-referrer"
             loading="lazy"

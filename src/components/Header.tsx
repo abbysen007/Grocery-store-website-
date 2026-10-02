@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, ShoppingCart, MapPin, ChevronDown, User, X } from 'lucide-react';
+import { Search, ShoppingCart, MapPin, ChevronDown, User, X, ShieldCheck } from 'lucide-react';
 import { SEARCH_PLACEHOLDERS } from '../data/mockData';
 import { UserAddress } from '../types';
 import { FreshitLogo } from './FreshitLogo';
@@ -17,6 +17,7 @@ interface HeaderProps {
   isLoggedIn: boolean;
   userName?: string;
   onResetToHome: () => void;
+  onOpenAdmin?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,6 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   isLoggedIn,
   userName,
   onResetToHome,
+  onOpenAdmin,
 }) => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -142,8 +144,19 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Right: Login & Dynamic Green Cart Button */}
-        <div className="flex items-center gap-3.5 shrink-0">
+        {/* Right: Admin, Login & Dynamic Green Cart Button */}
+        <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
+          {onOpenAdmin && (
+            <button
+              onClick={onOpenAdmin}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#14532D] text-white hover:bg-[#15803D] transition-colors shadow-xs cursor-pointer"
+              title="Store Admin Panel"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#86efac]" />
+              <span className="hidden sm:inline">Admin</span>
+            </button>
+          )}
+
           <button
             onClick={onOpenAuthModal}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-[#121212] hover:bg-black/10 transition-colors cursor-pointer"
@@ -207,8 +220,19 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
-          {/* Right Mobile Actions: Profile & Dynamic Green Cart Button */}
+          {/* Right Mobile Actions: Admin, Profile & Dynamic Green Cart Button */}
           <div className="flex items-center gap-1.5 shrink-0">
+            {onOpenAdmin && (
+              <button
+                onClick={onOpenAdmin}
+                aria-label="Admin Portal"
+                className="w-9 h-9 rounded-xl bg-[#14532D] text-white flex items-center justify-center border border-emerald-800 shadow-2xs cursor-pointer"
+                title="Admin Command Center"
+              >
+                <ShieldCheck className="w-4 h-4 text-[#86efac]" />
+              </button>
+            )}
+
             {/* Account / User Avatar */}
             <button
               onClick={onOpenAuthModal}

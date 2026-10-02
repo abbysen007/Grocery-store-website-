@@ -431,8 +431,13 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
                     >
                       <div className="flex items-center gap-3">
                         <img
-                          src={item.product.image}
+                          src={item.product.image || item.product.imageUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop&q=80'}
                           alt={item.product.name}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.onerror = null;
+                            target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop&q=80';
+                          }}
                           className="w-10 h-10 object-contain rounded-xl bg-slate-50 p-1 border border-slate-100"
                         />
                         <div>

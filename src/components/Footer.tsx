@@ -19,14 +19,19 @@ import {
 } from 'lucide-react';
 import { getStoredStoreLocation } from '../hooks/useGeolocation';
 import { FreshitLogo } from './FreshitLogo';
+import { StoreInfoModal, StoreInfoTab } from './StoreInfoModal';
+import { AdminDataService } from '../services/adminState';
 
 interface FooterProps {
   onSelectCategory?: (categoryName: string) => void;
+  onOpenAdmin?: () => void;
+  onOpenRider?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
+export const Footer: React.FC<FooterProps> = ({ onSelectCategory, onOpenAdmin, onOpenRider }) => {
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
   const [storeConfig, setStoreConfig] = useState(() => getStoredStoreLocation());
+  const [infoModalTab, setInfoModalTab] = useState<StoreInfoTab | null>(null);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -174,14 +179,34 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
             </div>
 
             <ul className={`space-y-2 text-xs text-slate-400 ${mobileExpandedSection === 'links' ? 'block' : 'hidden md:block'}`}>
-              <li><a href="#about-us" className="hover:text-[#F5ECD5] transition-colors block">About Us</a></li>
-              <li><a href="#single-store" className="hover:text-[#F5ECD5] transition-colors block">Our Flagship Store</a></li>
-              <li><a href="#careers" className="hover:text-[#F5ECD5] transition-colors block">Rider Careers</a></li>
-              <li><a href="#privacy" className="hover:text-[#F5ECD5] transition-colors block">Privacy Policy</a></li>
-              <li><a href="#terms" className="hover:text-[#F5ECD5] transition-colors block">Terms &amp; Conditions</a></li>
-              <li><a href="#faqs" className="hover:text-[#F5ECD5] transition-colors block">FAQs &amp; Help Center</a></li>
-              <li><a href="#security" className="hover:text-[#F5ECD5] transition-colors block">Security &amp; Compliance</a></li>
-              <li><a href="#fssai" className="hover:text-[#F5ECD5] transition-colors block">FSSAI Food Safety</a></li>
+              {onOpenAdmin && (
+                <li>
+                  <button
+                    onClick={onOpenAdmin}
+                    className="text-[#F5ECD5] hover:text-white font-bold transition-colors block text-left cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>⚡ Store Admin Command Center</span>
+                  </button>
+                </li>
+              )}
+              {onOpenRider && (
+                <li>
+                  <button
+                    onClick={onOpenRider}
+                    className="text-emerald-400 hover:text-white font-bold transition-colors block text-left cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>🛵 Delivery Partner & Rider Portal</span>
+                  </button>
+                </li>
+              )}
+              <li><button onClick={() => setInfoModalTab('about')} className="hover:text-[#F5ECD5] transition-colors block text-left cursor-pointer">About Us</button></li>
+              <li><button onClick={() => setInfoModalTab('store')} className="hover:text-[#F5ECD5] transition-colors block text-left cursor-pointer">Our Flagship Store</button></li>
+              <li><button onClick={() => setInfoModalTab('careers')} className="hover:text-[#F5ECD5] transition-colors block text-left cursor-pointer flex items-center gap-1.5"><span>Rider Careers</span><span className="text-[9px] bg-amber-400 text-black px-1.5 py-0.2 rounded-full font-bold">Hiring</span></button></li>
+              <li><button onClick={() => setInfoModalTab('privacy')} className="hover:text-[#F5ECD5] transition-colors block text-left cursor-pointer">Privacy Policy</button></li>
+              <li><button onClick={() => setInfoModalTab('terms')} className="hover:text-[#F5ECD5] transition-colors block text-left cursor-pointer">Terms &amp; Conditions</button></li>
+              <li><button onClick={() => setInfoModalTab('faqs')} className="hover:text-[#F5ECD5] transition-colors block text-left cursor-pointer">FAQs &amp; Help Center</button></li>
+              <li><button onClick={() => setInfoModalTab('security')} className="hover:text-[#F5ECD5] transition-colors block text-left cursor-pointer">Security &amp; Compliance</button></li>
+              <li><button onClick={() => setInfoModalTab('fssai')} className="hover:text-[#F5ECD5] transition-colors block text-left cursor-pointer">FSSAI Food Safety</button></li>
             </ul>
           </div>
 
@@ -199,7 +224,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
                     Freshit Dark Store Hub
                   </span>
                   <span className="text-[10px] font-bold text-[#085E2B]">
-                    Active 25m Hyper-Local Perimeter
+                    Active 25 km Delivery Radius Geofence
                   </span>
                 </div>
               </div>
@@ -300,7 +325,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
                   ⚡ 8-Min Express Delivery
                 </span>
                 <span className="px-2.5 py-1 rounded-lg bg-amber-950/70 border border-amber-500/30 text-amber-300 font-bold text-[11px] font-['Clash_Display',sans-serif]">
-                  🎯 Max Radius: Under 25m of Store Address
+                  🎯 Max Radius: 25 km Geofence
                 </span>
               </div>
             </div>
@@ -314,7 +339,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
             <span className="font-bold text-[#F5ECD5] block mb-1 font-['Clash_Display',sans-serif]">
               Single-Store Operating Notice &amp; Local Service Radius:
             </span>
-            Freshit currently operates a single flagship dark store in Raghunathpur (PIN: {storeConfig.pincode}), serving immediate local neighborhoods with ultra-fast 8-minute delivery. Orders are delivered under 25 meters of the store address (Kuntighat - Magra Rd, Naya Sarai, Chandrahati Bazar) to ensure absolute peak freshness and instant fulfillment.
+            Freshit currently operates a single flagship dark store in Raghunathpur (PIN: {storeConfig.pincode}), serving immediate local neighborhoods with ultra-fast 8-minute delivery. Orders are delivered within a 25 km geofenced radius of the store address (Kuntighat - Magra Rd, Naya Sarai, Chandrahati Bazar) to ensure peak freshness and reliable fulfillment.
           </div>
 
           {/* Social Icons & Bottom Row */}
@@ -364,17 +389,50 @@ export const Footer: React.FC<FooterProps> = ({ onSelectCategory }) => {
             </div>
 
             <div className="flex items-center gap-3">
-              <a href="#privacy" className="hover:text-slate-300">Privacy Policy</a>
+              <button onClick={() => setInfoModalTab('privacy')} className="hover:text-slate-300 cursor-pointer">Privacy Policy</button>
               <span>·</span>
-              <a href="#terms" className="hover:text-slate-300">Terms of Service</a>
+              <button onClick={() => setInfoModalTab('terms')} className="hover:text-slate-300 cursor-pointer">Terms of Service</button>
               <span>·</span>
-              <a href="#grievance" className="hover:text-slate-300">Grievance Officer</a>
+              <button onClick={() => setInfoModalTab('grievance')} className="hover:text-slate-300 cursor-pointer">Grievance Officer</button>
               <span>·</span>
-              <a href="#security" className="hover:text-slate-300">Security Architecture</a>
+              <button onClick={() => setInfoModalTab('security')} className="hover:text-slate-300 cursor-pointer">Security Architecture</button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Interactive Store Information & Policy Modal */}
+      <StoreInfoModal
+        isOpen={infoModalTab !== null}
+        onClose={() => setInfoModalTab(null)}
+        initialTab={infoModalTab || 'about'}
+        onApplyRider={(form) => {
+          const currentRiders = AdminDataService.getRiders();
+          const newRider: any = {
+            id: `rider-${Date.now()}`,
+            name: form.name,
+            phone: form.phone,
+            email: `${form.name.toLowerCase().replace(/\s+/g, '.')}@freshit.in`,
+            vehicleType: form.vehicle.includes('Bike') ? 'E-Bike' : 'Motorcycle',
+            vehicleNumber: 'WB-16-NEW',
+            verificationStatus: 'verified',
+            availability: 'online',
+            currentDeliveryStatus: 'idle',
+            completedDeliveries: 0,
+            rating: 5.0,
+            accountStatus: 'active',
+            joinedDate: 'Today',
+            drivingLicenseNumber: form.license || 'VERIFIED-ID',
+          };
+          AdminDataService.saveRiders([newRider, ...currentRiders]);
+          AdminDataService.logActivity(
+            'New Rider Onboarding Application',
+            newRider.id,
+            `${form.name} joined the fleet. Shift: ${form.shift}. Phone: ${form.phone}`,
+            'rider'
+          );
+        }}
+      />
     </footer>
   );
 };

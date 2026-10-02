@@ -29,33 +29,88 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'relevance' | 'price_low' | 'price_high' | 'discount'>('relevance');
 
-  const subcategoriesList = useMemo(() => {
-    for (const dept of BLINKIT_DEPARTMENTS) {
-      const found = dept.categories.find(
-        (c) => c.name.toLowerCase() === categoryName.toLowerCase()
-      );
-      if (found) return found.subcategories;
+  // Category synonyms and department groupings
+  const matchingCategoryNames = useMemo(() => {
+    const target = categoryName.toLowerCase().trim();
+    const set = new Set<string>([target]);
+
+    const dept = BLINKIT_DEPARTMENTS.find(
+      (d) => d.title.toLowerCase() === target || (d.title === 'Snacks & Drinks' && target === 'snacks & drinks')
+    );
+    if (dept) {
+      dept.categories.forEach((c) => set.add(c.name.toLowerCase()));
     }
 
-    const cat = CATEGORIES.find((c) => c.name.toLowerCase() === categoryName.toLowerCase());
-    if (cat) return cat.subcategories;
+    if (target.includes('snack') || target.includes('drink')) {
+      ['chips & namkeen', 'sweets & chocolates', 'drinks & juices', 'tea, coffee & milk drinks', 'instant food', 'sauces & spreads', 'paan corner', 'ice creams & more', 'snacks & drinks', 'chips & crisps', 'cold drinks & juices', 'chocolates & candies', 'namkeen & bhujia', 'cookies & biscuits'].forEach((n) => set.add(n));
+    } else if (target.includes('veg') || target.includes('fruit')) {
+      ['vegetables & fruits', 'fresh vegetables', 'fresh fruits', 'leafy greens', 'hydroponics & salads', 'seasonal exotics'].forEach((n) => set.add(n));
+    } else if (target.includes('dairy') || target.includes('bread') || target.includes('egg')) {
+      ['dairy, bread & eggs', 'milk', 'bread & pav', 'eggs', 'butter & cheese', 'paneer & curd', 'paneer & tofu', 'curd & yogurt'].forEach((n) => set.add(n));
+    } else if (target.includes('atta') || target.includes('rice') || target.includes('dal')) {
+      ['atta, rice & dal', 'atta & flour', 'basmati rice', 'pulses & lentils', 'poha & grains', 'organic grains'].forEach((n) => set.add(n));
+    } else if (target.includes('oil') || target.includes('ghee') || target.includes('masala')) {
+      ['oil, ghee & masala', 'cooking oils', 'desi ghee', 'powdered spices', 'whole spices & seeds', 'whole spices'].forEach((n) => set.add(n));
+    } else if (target.includes('bakery') || target.includes('biscuit')) {
+      ['bakery & biscuits', 'digestive biscuits', 'cookies & rusk', 'choco fills', 'whole wheat bread', 'cakes & muffins', 'cream biscuits'].forEach((n) => set.add(n));
+    } else if (target.includes('beauty') || target.includes('personal') || target.includes('bath') || target.includes('skin')) {
+      ['beauty & personal care', 'bath & body', 'hair', 'skin & face', 'beauty & cosmetics', 'soaps & body wash', 'hair care', 'skin care', 'oral hygiene'].forEach((n) => set.add(n));
+    } else if (target.includes('house') || target.includes('clean') || target.includes('home')) {
+      ['household essentials', 'cleaners & repellents', 'kitchenware & appliances', 'home & lifestyle', 'detergent & fabric care', 'dishwashers'].forEach((n) => set.add(n));
+    } else if (target.includes('electr')) {
+      ['electronics & gadgets', 'electronics', 'batteries & bulbs', 'charging cables & adapters'].forEach((n) => set.add(n));
+    } else if (target.includes('station') || target.includes('craft') || target.includes('game')) {
+      ['stationery & crafts', 'stationery & games', 'notebooks & registers', 'art supplies'].forEach((n) => set.add(n));
+    } else if (target.includes('meat') || target.includes('chicken') || target.includes('fish')) {
+      ['chicken, meat & fish', 'fresh chicken', 'tender mutton', 'fish & seafood'].forEach((n) => set.add(n));
+    } else if (target.includes('dry fruit') || target.includes('cereal')) {
+      ['dry fruits & cereals', 'almonds & cashews', 'makhana & fox nuts', 'breakfast cereals'].forEach((n) => set.add(n));
+    }
 
-    const subs = Array.from(
-      new Set(
-        products
-          .filter((p) => p.category.toLowerCase() === categoryName.toLowerCase())
-          .map((p) => p.subcategory)
-          .filter(Boolean)
-      )
-    ) as string[];
+    return set;
+  }, [categoryName]);
 
-    return subs;
-  }, [categoryName, products]);
+  const subcategoriesList = useMemo(() => {
+    const listSet = new Set<string>();
+
+    for (const dept of BLINKIT_DEPARTMENTS) {
+      const found = dept.categories.find(
+        (c) => matchingCategoryNames.has(c.name.toLowerCase()) || c.name.toLowerCase() === categoryName.toLowerCase()
+      );
+      if (found) {
+        found.subcategories.forEach((s) => listSet.add(s));
+      }
+    }
+
+    const cat = CATEGORIES.find(
+      (c) => matchingCategoryNames.has(c.name.toLowerCase()) || c.name.toLowerCase() === categoryName.toLowerCase()
+    );
+    if (cat) {
+      cat.subcategories.forEach((s) => listSet.add(s));
+    }
+
+    products.forEach((p) => {
+      const pCat = (p.category || '').toLowerCase();
+      const pSub = (p.subcategory || '').toLowerCase();
+      if (matchingCategoryNames.has(pCat) || matchingCategoryNames.has(pSub)) {
+        if (p.subcategory) listSet.add(p.subcategory);
+      }
+    });
+
+    return Array.from(listSet);
+  }, [categoryName, products, matchingCategoryNames]);
 
   const filteredProducts = useMemo(() => {
-    let list = products.filter(
-      (p) => p.category.toLowerCase() === categoryName.toLowerCase()
-    );
+    let list = products.filter((p) => {
+      const pCat = (p.category || '').toLowerCase();
+      const pSub = (p.subcategory || '').toLowerCase();
+      return (
+        matchingCategoryNames.has(pCat) ||
+        matchingCategoryNames.has(pSub) ||
+        pCat === categoryName.toLowerCase() ||
+        pSub === categoryName.toLowerCase()
+      );
+    });
 
     if (selectedSubcategory !== 'All') {
       list = list.filter((p) => p.subcategory === selectedSubcategory);
@@ -70,7 +125,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
     }
 
     return list;
-  }, [products, categoryName, selectedSubcategory, sortBy]);
+  }, [products, categoryName, selectedSubcategory, sortBy, matchingCategoryNames]);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-6">

@@ -195,8 +195,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   <div key={product.id} className="py-3 flex items-center justify-between gap-3">
                     <div className="w-12 h-12 rounded-xl bg-slate-50 p-1 flex items-center justify-center shrink-0 border border-slate-100">
                       <img
-                        src={product.image}
+                        src={product.image || product.imageUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop&q=80'}
                         alt={product.name}
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.onerror = null;
+                          target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop&q=80';
+                        }}
                         className="w-full h-full object-contain"
                       />
                     </div>

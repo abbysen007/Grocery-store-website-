@@ -23,13 +23,19 @@ import { PaymentPage } from './components/PaymentPage';
 import { OrderTrackingPage } from './components/OrderTrackingPage';
 import { AccountDrawer, AccountSubView } from './components/AccountDrawer';
 import { AnimatedBackground } from './components/AnimatedBackground';
+import { AdminPanel } from './components/admin/AdminPanel';
+import { RiderPortal } from './components/rider/RiderPortal';
+import { AdminDataService } from './services/adminState';
 import Lenis from 'lenis';
 
-type AppRoute = 'home' | 'checkout' | 'payment' | 'order-status';
+type AppRoute = 'home' | 'checkout' | 'payment' | 'order-status' | 'admin' | 'rider';
 
 export default function App() {
   // Navigation Route State
   const [currentRoute, setCurrentRoute] = useState<AppRoute>('home');
+
+  // Synchronized Store Catalogue Products State
+  const [products, setProducts] = useState<Product[]>(() => AdminDataService.getProducts());
 
   // Persistent User Profile State
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -151,13 +157,13 @@ export default function App() {
   // Ultra-Smooth Physics-Based Inertial Scrolling Engine
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.25,
+      duration: 1.35,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 1.05,
-      touchMultiplier: 1.2,
+      wheelMultiplier: 1.15,
+      touchMultiplier: 1.4,
       infinite: false,
     });
 
@@ -192,9 +198,12 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname.replace(/^\//, '');
-      if (path === 'checkout') setCurrentRoute('checkout');
-      else if (path === 'payment') setCurrentRoute('payment');
-      else if (path.startsWith('order-status')) setCurrentRoute('order-status');
+      const hash = window.location.hash.replace(/^#/, '');
+      if (path === 'checkout' || hash === 'checkout') setCurrentRoute('checkout');
+      else if (path === 'payment' || hash === 'payment') setCurrentRoute('payment');
+      else if (path.startsWith('order-status') || hash.startsWith('order-status')) setCurrentRoute('order-status');
+      else if (path === 'admin' || hash === 'admin') setCurrentRoute('admin');
+      else if (path === 'rider' || hash === 'rider') setCurrentRoute('rider');
       else if (path.startsWith('account')) {
         setIsAccountDrawerOpen(true);
         if (path.includes('orders')) setAccountSubView('orders');
@@ -242,11 +251,11 @@ export default function App() {
   const cartItems: CartItem[] = useMemo(() => {
     return Object.entries(cartQuantities)
       .map(([id, qty]) => {
-        const product = PRODUCTS.find((p) => p.id === id);
+        const product = products.find((p) => p.id === id);
         return product ? { product, quantity: qty } : null;
       })
       .filter((item): item is CartItem => item !== null);
-  }, [cartQuantities]);
+  }, [cartQuantities, products]);
 
   const cartCount = useMemo(() => {
     return Object.values(cartQuantities).reduce((sum, q) => sum + q, 0);
@@ -270,24 +279,24 @@ export default function App() {
 
   // Curated product slices for horizontal rails
   const hotDealsProducts = useMemo(() => {
-    return PRODUCTS.filter((p) => p.discountPercentage >= 20);
-  }, []);
+    return products.filter((p) => p.discountPercentage >= 20);
+  }, [products]);
 
   const freshDailyProducts = useMemo(() => {
-    return PRODUCTS.filter((p) => p.category === 'Vegetables & Fruits');
-  }, []);
+    return products.filter((p) => p.category === 'Vegetables & Fruits');
+  }, [products]);
 
   const dairyStaplesProducts = useMemo(() => {
-    return PRODUCTS.filter((p) => p.category === 'Dairy, Bread & Eggs');
-  }, []);
+    return products.filter((p) => p.category === 'Dairy, Bread & Eggs');
+  }, [products]);
 
   const snacksDrinksProducts = useMemo(() => {
-    return PRODUCTS.filter((p) => p.category === 'Snacks & Drinks');
-  }, []);
+    return products.filter((p) => p.category === 'Snacks & Drinks');
+  }, [products]);
 
   const pantryProducts = useMemo(() => {
-    return PRODUCTS.filter((p) => p.category === 'Atta, Rice & Dal' || p.category === 'Oil, Ghee & Masala');
-  }, []);
+    return products.filter((p) => p.category === 'Atta, Rice & Dal' || p.category === 'Oil, Ghee & Masala');
+  }, [products]);
 
   // Reorder flow: repopulates cart from past order
   const handleReorder = (order: Order) => {
@@ -390,6 +399,9 @@ export default function App() {
 
     setActiveOrder(newOrder);
     setOrders((prev) => [newOrder, ...prev]);
+    try {
+      AdminDataService.saveOrders([newOrder, ...AdminDataService.getOrders()]);
+    } catch {}
     setCartQuantities({}); // clear basket
     setAppliedCoupon(null);
     navigate('order-status');
@@ -456,7 +468,35 @@ export default function App() {
     );
   }
 
-  // 4. Default Storefront Home View
+  // 4. Render Freshit Complete Admin Panel
+  if (currentRoute === 'admin') {
+    return (
+      <AdminPanel
+        onBackToStore={() => navigate('home')}
+        onOpenRiderPortal={() => navigate('rider')}
+        onStoreProductsUpdated={(upd) => setProducts(upd)}
+      />
+    );
+  }
+
+  // 5. Render Freshit Delivery Partner & Rider Portal
+  if (currentRoute === 'rider') {
+    return (
+      <RiderPortal
+        onBackToStore={() => navigate('home')}
+        onOpenAdmin={() => navigate('admin')}
+        orders={orders}
+        onUpdateOrders={(upd) => {
+          setOrders(upd);
+          try {
+            localStorage.setItem('freshit_orders', JSON.stringify(upd));
+          } catch {}
+        }}
+      />
+    );
+  }
+
+  // 5. Default Storefront Home View
   return (
     <div className="min-h-screen flex flex-col bg-transparent relative font-['Satoshi',sans-serif] text-[#121212]">
       {/* Scroll-Reactive Animated Ambient Background */}
@@ -487,23 +527,24 @@ export default function App() {
           setSearchQuery('');
           navigate('home');
         }}
+        onOpenAdmin={() => navigate('admin')}
       />
 
-      {/* Strict 25-Meter Hyper-Local Serviceability Warning Banner */}
+      {/* 25 km Delivery Radius Serviceability Warning Banner */}
       {!isServiceable && (
         <div className="bg-rose-700 text-white px-4 py-2.5 text-xs font-bold sticky top-16 md:top-20 z-30 shadow-md">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 text-amber-300" />
               <span>
-                We deliver exclusively to PIN 712513 and under 25 meters of our store address (Kuntighat - Magra Rd, Naya Sarai, Chandrahati Bazar). Delivery unavailable at this location.
+                We deliver within a 25 km radius of our store hub (Kuntighat - Magra Rd, Naya Sarai, Chandrahati Bazar, WB 712513). Delivery unavailable at this location.
               </span>
             </div>
             <button
               onClick={() => setIsLocationModalOpen(true)}
               className="px-3 py-1 bg-white text-rose-800 rounded-lg text-xs font-black shadow-xs hover:bg-rose-50 cursor-pointer shrink-0"
             >
-              Verify PIN &amp; Location
+              Check Coverage
             </button>
           </div>
         </div>
@@ -516,7 +557,7 @@ export default function App() {
           <SearchOverlay
             query={searchQuery}
             onClear={() => setSearchQuery('')}
-            products={PRODUCTS}
+            products={products}
             cartQuantities={cartQuantities}
             onAddToCart={handleAddToCart}
             onUpdateQuantity={handleUpdateQuantity}
@@ -527,7 +568,7 @@ export default function App() {
           /* Deep Category View with Subcategories */
           <CategoryView
             categoryName={selectedCategory}
-            products={PRODUCTS}
+            products={products}
             cartQuantities={cartQuantities}
             onAddToCart={handleAddToCart}
             onUpdateQuantity={handleUpdateQuantity}
@@ -614,7 +655,11 @@ export default function App() {
       </main>
 
       {/* 5. Comprehensive Multi-Column Footer with Dark Theme & Google Map Widget */}
-      <Footer onSelectCategory={(cat) => setSelectedCategory(cat)} />
+      <Footer
+        onSelectCategory={(cat) => setSelectedCategory(cat)}
+        onOpenAdmin={() => navigate('admin')}
+        onOpenRider={() => navigate('rider')}
+      />
 
       {/* Floating Mobile Cart Bar */}
       <MobileCartBar
@@ -677,6 +722,8 @@ export default function App() {
         onTopUpWallet={handleTopUpWallet}
         onApplyCoupon={handleApplyCoupon}
         initialSubView={accountSubView}
+        onOpenAdmin={() => navigate('admin')}
+        onOpenRider={() => navigate('rider')}
       />
 
       {/* Product Quick-View Details Modal */}

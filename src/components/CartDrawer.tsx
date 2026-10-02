@@ -193,8 +193,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           {/* Image */}
                           <div className="w-14 h-14 rounded-xl bg-slate-50 p-1.5 flex items-center justify-center shrink-0">
                             <img
-                              src={product.image}
+                              src={product.image || product.imageUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop&q=80'}
                               alt={product.name}
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                target.onerror = null;
+                                target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop&q=80';
+                              }}
                               className="w-full h-full object-contain"
                             />
                           </div>

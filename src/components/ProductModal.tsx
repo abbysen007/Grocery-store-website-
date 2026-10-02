@@ -63,9 +63,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               </div>
 
               <img
-                src={product.image}
+                src={product.image || product.imageUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=80'}
                 alt={product.name}
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.onerror = null;
+                  target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=80';
+                }}
                 className="w-full max-h-[260px] object-contain mix-blend-multiply"
               />
             </div>

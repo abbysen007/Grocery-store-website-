@@ -17,7 +17,8 @@ import {
   Globe, 
   Sparkles,
   ShieldCheck,
-  User
+  User,
+  Bike
 } from 'lucide-react';
 import { UserProfile, UserAddress, Order, UserWallet, Coupon } from '../types';
 import { FreshitLogo } from './FreshitLogo';
@@ -48,6 +49,8 @@ interface AccountDrawerProps {
   onTopUpWallet: (amount: number) => void;
   onApplyCoupon?: (coupon: Coupon) => void;
   initialSubView?: AccountSubView;
+  onOpenAdmin?: () => void;
+  onOpenRider?: () => void;
 }
 
 export const AccountDrawer: React.FC<AccountDrawerProps> = ({
@@ -69,6 +72,8 @@ export const AccountDrawer: React.FC<AccountDrawerProps> = ({
   onTopUpWallet,
   onApplyCoupon,
   initialSubView = 'menu',
+  onOpenAdmin,
+  onOpenRider,
 }) => {
   const [currentSubView, setCurrentSubView] = useState<AccountSubView>(initialSubView);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -512,6 +517,62 @@ export const AccountDrawer: React.FC<AccountDrawerProps> = ({
                         );
                       })}
                     </div>
+
+                    {/* Store Admin Portal Link */}
+                    {onOpenAdmin && (
+                      <div className="pt-2">
+                        <button
+                          onClick={() => {
+                            onClose();
+                            onOpenAdmin();
+                          }}
+                          className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-[#14532D] text-white hover:bg-[#15803D] transition-colors cursor-pointer shadow-xs group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
+                              <ShieldCheck className="w-4 h-4 text-[#86efac]" />
+                            </div>
+                            <div className="text-left">
+                              <span className="font-bold text-xs block font-['Clash_Display',sans-serif]">
+                                Store Admin Command Center
+                              </span>
+                              <span className="text-[10px] text-emerald-200">
+                                Real-time orders, products, inventory & dispatch
+                              </span>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-emerald-200 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Delivery Partner & Rider Portal Link */}
+                    {onOpenRider && (
+                      <div className="pt-1">
+                        <button
+                          onClick={() => {
+                            onClose();
+                            onOpenRider();
+                          }}
+                          className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 border border-slate-700 transition-colors cursor-pointer shadow-xs group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                              <Bike className="w-4 h-4 text-emerald-400" />
+                            </div>
+                            <div className="text-left">
+                              <span className="font-bold text-xs block font-['Clash_Display',sans-serif]">
+                                Delivery Partner & Rider Portal
+                              </span>
+                              <span className="text-[10px] text-slate-400">
+                                Live order pickup, GPS navigation & delivery confirmation
+                              </span>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                      </div>
+                    )}
 
                     {/* Logout Button */}
                     <div className="pt-2">

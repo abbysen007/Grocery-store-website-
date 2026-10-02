@@ -1,6 +1,7 @@
 export interface Product {
   id: string;
   name: string;
+  title?: string; // Ergonomic alias for name
   category: string;
   subcategory?: string;
   weight: string;
@@ -10,15 +11,19 @@ export interface Product {
   discountPercentage: number;
   discount?: string;
   image: string;
+  imageUrl?: string; // Ergonomic alias for image
   rating?: number;
   reviewsCount?: number;
   eta: string; // e.g. "8 mins"
   deliveryTime?: string;
+  deliveryTimeMinutes?: number;
   description: string;
   inStock: boolean;
   shelfLife?: string;
   keyFeatures?: string[];
   unit: string;
+  featured?: boolean;
+  status?: 'active' | 'inactive' | 'draft';
 }
 
 export interface Category {
@@ -26,8 +31,12 @@ export interface Category {
   name: string;
   icon: string;
   itemCount: number;
+  itemsCount?: number;
   bgColor?: string;
   subcategories: string[];
+  imageUrl?: string;
+  displayOrder?: number;
+  enabled?: boolean;
 }
 
 export interface CartItem {
@@ -41,13 +50,19 @@ export interface UserAddress {
   address: string;
   area: string;
   city: string;
+  state?: string;
+  pincode?: string;
   eta: string;
   houseNo?: string;
   apartmentRoad?: string;
   landmark?: string;
   receiverName?: string;
+  name?: string; // Ergonomic alias for receiverName
   receiverPhone?: string;
+  phone?: string;
   isDefault?: boolean;
+  lat?: number;
+  lng?: number;
 }
 
 export interface BannerSlide {
@@ -60,13 +75,14 @@ export interface BannerSlide {
   categoryFilter?: string;
 }
 
-export type PaymentType = 'upi' | 'card' | 'wallet' | 'netbanking' | 'cod';
+export type PaymentType = 'upi' | 'card' | 'wallet' | 'netbanking' | 'cod' | 'UPI' | 'Card' | 'Cash on Delivery';
 
 export interface PaymentDetails {
   method: PaymentType;
-  providerTitle: string;
+  providerTitle?: string;
   transactionId: string;
-  paidAt: string;
+  paidAt?: string;
+  status?: 'successful' | 'pending' | 'failed' | 'refunded' | 'completed';
   cardLast4?: string;
   upiVpa?: string;
 }
@@ -74,16 +90,21 @@ export interface PaymentDetails {
 export interface Order {
   id: string;
   date: string;
+  createdAt?: string; // Ergonomic alias for date
   items: CartItem[];
   itemTotal: number;
+  subtotal?: number; // Ergonomic alias for itemTotal
   handlingFee: number;
   deliveryFee: number;
   tip: number;
   grandTotal: number;
+  total?: number; // Ergonomic alias for grandTotal
   address: UserAddress;
-  status: 'placed' | 'packing' | 'on_the_way' | 'delivered';
+  status: 'placed' | 'packing' | 'on_the_way' | 'delivered' | 'cancelled';
   etaMinutes: number;
   placedTimestamp: number;
+  deliveredAt?: string;
+  paymentMethod?: string;
   deliveryNotes?: string[];
   paymentDetails?: PaymentDetails;
   deliveryPartner?: {

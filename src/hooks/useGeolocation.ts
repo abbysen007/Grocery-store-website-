@@ -22,7 +22,7 @@ export const DEFAULT_STORE_LOCATION: StoreLocationConfig = {
   pincode: '712513',
   latitude: 22.993125,
   longitude: 88.385500,
-  maxDeliveryRadiusMeters: 25, // Strict under 25-meter perimeter of store address
+  maxDeliveryRadiusMeters: 25000, // 25 km delivery radius from store hub
 };
 
 export function getStoredStoreLocation(): StoreLocationConfig {
@@ -32,6 +32,9 @@ export function getStoredStoreLocation(): StoreLocationConfig {
       const parsed = JSON.parse(saved);
       // Ensure no plusCode is retained
       delete (parsed as any).plusCode;
+      if (parsed.maxDeliveryRadiusMeters === 25 || !parsed.maxDeliveryRadiusMeters) {
+        parsed.maxDeliveryRadiusMeters = 25000;
+      }
       return { ...DEFAULT_STORE_LOCATION, ...parsed };
     }
   } catch {
@@ -270,16 +273,14 @@ export function useGeolocation() {
         const reverseAddr = await reverseGeocodeCoords(userLat, userLng);
         const detectedPin = reverseAddr.pincode ? reverseAddr.pincode.trim() : storeConfig.pincode;
 
-        // VERIFY WITH PIN CODE (Must match store pin code 712513) AND UNDER 25 METERS OF STORE ADDRESS
-        const isPinMatch = detectedPin === storeConfig.pincode;
-        const isUnderRadius = dist <= storeConfig.maxDeliveryRadiusMeters;
-        const serviceable = isPinMatch && isUnderRadius;
+        // VERIFY WITHIN 25 KM RADIUS OF STORE HUB
+        const maxRadius = storeConfig.maxDeliveryRadiusMeters || 25000;
+        const isUnderRadius = dist <= maxRadius;
+        const serviceable = isUnderRadius;
 
         let reason = '';
-        if (!isPinMatch) {
-          reason = `PIN code ${detectedPin} does not match store delivery PIN (${storeConfig.pincode}).`;
-        } else if (!isUnderRadius) {
-          reason = `Location is ${dist}m away, which exceeds our 25-meter store address perimeter.`;
+        if (!isUnderRadius) {
+          reason = `Location is ${(dist / 1000).toFixed(1)} km away, which exceeds our ${(maxRadius / 1000).toFixed(0)} km delivery zone.`;
         }
 
         setGeoState({
@@ -317,7 +318,7 @@ export function useGeolocation() {
     );
   }, [storeConfig]);
 
-  // Set Manual Address from User Geocoding or Form with PIN Code verification
+  // Set Manual Address from User Geocoding or Form with Geofence verification
   const setManualAddressLocation = useCallback(
     (lat: number, lng: number, addressTitle: string, fullAddress?: string, userPin?: string) => {
       const dist = calculateDistanceInMeters(
@@ -328,15 +329,13 @@ export function useGeolocation() {
       );
 
       const effectivePin = (userPin || storeConfig.pincode).trim();
-      const isPinMatch = effectivePin === storeConfig.pincode;
-      const isUnderRadius = dist <= storeConfig.maxDeliveryRadiusMeters;
-      const serviceable = isPinMatch && isUnderRadius;
+      const maxRadius = storeConfig.maxDeliveryRadiusMeters || 25000;
+      const isUnderRadius = dist <= maxRadius;
+      const serviceable = isUnderRadius;
 
       let reason = '';
-      if (!isPinMatch) {
-        reason = `PIN code ${effectivePin} is outside our delivery zone. Orders are only accepted for PIN ${storeConfig.pincode}.`;
-      } else if (!isUnderRadius) {
-        reason = `Location is ${dist}m away (exceeds our 25-meter store address limit).`;
+      if (!isUnderRadius) {
+        reason = `Location is ${(dist / 1000).toFixed(1)} km away (exceeds our ${(maxRadius / 1000).toFixed(0)} km delivery radius).`;
       }
 
       setGeoState({
@@ -354,12 +353,12 @@ export function useGeolocation() {
         unserviceableReason: reason,
       });
 
-      return { serviceable, distance: dist, pinMatch: isPinMatch };
+      return { serviceable, distance: dist, pinMatch: true };
     },
     [storeConfig]
   );
 
-  // Quick Simulation Helper for testing hyper-local 25m & PIN rules
+  // Quick Simulation Helper for testing 25km radius
   const setSimulatedDistance = useCallback((meters: number, pin?: string, label?: string) => {
     const deltaLat = meters / 111000;
     const newLat = storeConfig.latitude + deltaLat;
@@ -372,9 +371,9 @@ export function useGeolocation() {
     );
 
     const targetPin = (pin || storeConfig.pincode).trim();
-    const isPinMatch = targetPin === storeConfig.pincode;
-    const isUnderRadius = computedDist <= storeConfig.maxDeliveryRadiusMeters;
-    const serviceable = isPinMatch && isUnderRadius;
+    const maxRadius = storeConfig.maxDeliveryRadiusMeters || 25000;
+    const isUnderRadius = computedDist <= maxRadius;
+    const serviceable = isUnderRadius;
 
     setGeoState({
       coords: { latitude: newLat, longitude: newLng },
@@ -385,13 +384,13 @@ export function useGeolocation() {
       error: null,
       mode: 'simulated',
       locationName: label || (serviceable
-        ? `Naya Sarai, Chandrahati (PIN ${targetPin} · ${computedDist}m from Hub)`
-        : `Outside Zone (${computedDist}m · PIN ${targetPin})`),
+        ? `Naya Sarai, Chandrahati (PIN ${targetPin} · ${(computedDist / 1000).toFixed(1)} km from Hub)`
+        : `Outside Zone (${(computedDist / 1000).toFixed(1)} km · PIN ${targetPin})`),
       detailedAddress: serviceable
         ? `Holding No. 42, Kuntighat - Magra Rd, Naya Sarai, Chandrahati Bazar, Raghunathpur, WB ${targetPin}`
-        : `Location Beyond 25-Meter Perimeter, PIN ${targetPin}, Raghunathpur, WB`,
+        : `Location Beyond ${(maxRadius / 1000).toFixed(0)} km Delivery Zone, PIN ${targetPin}, Raghunathpur, WB`,
       unserviceableReason: !serviceable
-        ? (!isPinMatch ? `Non-matching PIN (${targetPin})` : `Distance (${computedDist}m) exceeds 25 meters`)
+        ? `Distance (${(computedDist / 1000).toFixed(1)} km) exceeds ${(maxRadius / 1000).toFixed(0)} km delivery radius`
         : undefined,
     });
   }, [storeConfig]);
